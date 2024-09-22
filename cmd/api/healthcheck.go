@@ -8,11 +8,11 @@ import (
 
 func Healthcheck(app *Application) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		data := map[string]string{
+		env := envelope{
 			"status": "available",
 		}
 
-		err := app.writeJSON(w, http.StatusOK, data, nil)
+		err := app.writeJSON(w, http.StatusOK, env, nil)
 		if err != nil {
 			app.Logger.Error(err.Error())
 			http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
