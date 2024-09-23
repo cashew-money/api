@@ -14,5 +14,5 @@ func routes(app *Application) http.Handler {
 
 	router.GET("/v1/healthcheck", Healthcheck(app))
 
-	return router
+	return app.recoverPanic(router)
 }
