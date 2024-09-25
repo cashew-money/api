@@ -3,18 +3,20 @@ package main
 import (
 	"net/http"
 
+	"github.com/cashew-money/api/cmd/api/config"
+	"github.com/cashew-money/api/cmd/api/handlers"
 	"github.com/julienschmidt/httprouter"
 )
 
-func routes(app *Application) http.Handler {
+func routes(env *config.Env) http.Handler {
 	router := httprouter.New()
 
-	router.NotFound = http.HandlerFunc(app.notFoundResponse)
-	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
+	router.NotFound = http.HandlerFunc(handlers.NotFound(env))
+	router.MethodNotAllowed = http.HandlerFunc(handlers.MethodNotAllowed(env))
 
-	router.GET("/v1/healthcheck", Healthcheck(app))
+	router.GET("/v1/healthcheck", handlers.Healthcheck(env))
 
-	router.POST("/v1/plaid/sandbox/public_token/create", SandboxPublicTokenCreate(app))
+	router.POST("/v1/plaid/sandbox/public_token/create", handlers.SandboxPublicTokenCreate(env))
 
-	return app.recoverPanic(router)
+	return recoverPanic(env, router)
 }

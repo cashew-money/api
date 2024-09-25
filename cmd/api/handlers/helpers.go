@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 
 type envelope map[string]any
 
-func (app *Application) writeJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
+func writeJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
 	js, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func (app *Application) writeJSON(w http.ResponseWriter, status int, data any, h
 	return nil
 }
 
-func (app *Application) readJSON(w http.ResponseWriter, r *http.Request, dst any) error {
+func readJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	maxBytes := 1_048_576
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 

@@ -1,27 +1,28 @@
-package main
+package handlers
 
 import (
 	"context"
 	"net/http"
 	"time"
 
+	"github.com/cashew-money/api/cmd/api/config"
 	"github.com/julienschmidt/httprouter"
 	"github.com/plaid/plaid-go/plaid"
 )
 
-func SandboxPublicTokenCreate(app *Application) httprouter.Handle {
+func SandboxPublicTokenCreate(env *config.Env) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 		defer cancel()
 
-		sandboxPublicTokenResp, _, err := app.PlaidClient.PlaidApi.SandboxPublicTokenCreate(ctx).SandboxPublicTokenCreateRequest(
+		sandboxPublicTokenResp, _, err := env.PlaidClient.PlaidApi.SandboxPublicTokenCreate(ctx).SandboxPublicTokenCreateRequest(
 			*plaid.NewSandboxPublicTokenCreateRequest(
 				"ins_109508",
 				[]plaid.Products{plaid.PRODUCTS_TRANSACTIONS},
 			),
 		).Execute()
 		if err != nil {
-			app.serverErrorResponse(w, r, err)
+			ServerErrorResponse(env, w, r, err)
 			return
 		}
 
@@ -31,9 +32,9 @@ func SandboxPublicTokenCreate(app *Application) httprouter.Handle {
 			"public_token": publicToken,
 		}
 
-		err = app.writeJSON(w, http.StatusCreated, data, nil)
+		err = writeJSON(w, http.StatusCreated, data, nil)
 		if err != nil {
-			app.serverErrorResponse(w, r, err)
+			ServerErrorResponse(env, w, r, err)
 		}
 	}
 }
