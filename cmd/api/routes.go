@@ -14,5 +14,7 @@ func routes(app *Application) http.Handler {
 
 	router.GET("/v1/healthcheck", Healthcheck(app))
 
+	router.POST("/v1/plaid/sandbox/public_token/create", SandboxPublicTokenCreate(app))
+
 	return app.recoverPanic(router)
 }
