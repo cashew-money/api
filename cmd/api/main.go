@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/plaid/plaid-go/plaid"
 )
 
 type Config struct {
@@ -15,11 +16,16 @@ type Config struct {
 	DB   struct {
 		DSN string
 	}
+	Plaid struct {
+		ClientID string
+		Secret   string
+	}
 }
 
 type Application struct {
-	Config Config
-	Logger *slog.Logger
+	Config      Config
+	Logger      *slog.Logger
+	PlaidClient *plaid.APIClient
 }
 
 func main() {
@@ -27,6 +33,9 @@ func main() {
 
 	flag.IntVar(&cfg.Port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.DB.DSN, "db-dsn", "", "PostgreSQL DSN")
+
+	flag.StringVar(&cfg.Plaid.ClientID, "plaid-client-id", "", "Plaid client ID")
+	flag.StringVar(&cfg.Plaid.Secret, "plaid-secret", "", "Plaid secret")
 
 	flag.Parse()
 
@@ -41,9 +50,12 @@ func main() {
 
 	logger.Info("database connection pool established")
 
+	plaidClient := createPlaidClient(cfg.Plaid.ClientID, cfg.Plaid.Secret)
+
 	app := &Application{
-		Config: cfg,
-		Logger: logger,
+		Config:      cfg,
+		Logger:      logger,
+		PlaidClient: plaidClient,
 	}
 
 	err = app.Serve()
@@ -69,4 +81,12 @@ func openDB(dsn string) (*pgxpool.Pool, error) {
 	}
 
 	return pool, nil
+}
+
+func createPlaidClient(clientID, secret string) *plaid.APIClient {
+	config := plaid.NewConfiguration()
+	config.AddDefaultHeader("PLAID-CLIENT-ID", clientID)
+	config.AddDefaultHeader("PLAID-SECRET", secret)
+	config.UseEnvironment(plaid.Sandbox)
+	return plaid.NewAPIClient(config)
 }
